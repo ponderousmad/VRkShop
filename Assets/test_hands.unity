@@ -118,6 +118,7 @@ MonoBehaviour:
   radialSegments: 32
   length: 1
   radius: 0.1
+  spinRate: 100
 --- !u!23 &55770416
 MeshRenderer:
   m_ObjectHideFlags: 0

@@ -65,7 +65,7 @@ public class Lathe : MonoBehaviour
 		var bottomCenter = topCenter - 1;
 		for (int i = 0; i <= radialSegments; ++i)
 		{
-			var angle = angleStep * i;
+			var angle = i < radialSegments ? angleStep * i : 0.0f;
 			var cos = Mathf.Cos(angle);
 			var sin = Mathf.Sin(angle);
 			var z = radius * cos;
@@ -90,12 +90,13 @@ public class Lathe : MonoBehaviour
 					triIndex += TRI_VERTS;
 				}
 			}
+			Debug.DrawRay(transform.localPosition + new Vector3(0, y, z), new Vector3(0, sin, cos), new Color(sin, 0, cos), 100);
 			for (int j = 0; j <= lengthSegments; ++j)
 			{
 				vertices[index] = new Vector3(lengthStep * j, y, z);
 				if (initialize)
 				{
-					normals[index] = new Vector3(0, cos, sin);
+					normals[index] = new Vector3(0, sin, cos);
 					uv[index] = new Vector2(i * uStep, (j + 1) * vStep);
 					if (i < radialSegments && j < lengthSegments)
 					{
