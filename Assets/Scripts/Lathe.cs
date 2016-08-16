@@ -22,6 +22,12 @@ public class Lathe : MonoBehaviour
 		mf.mesh = null;
 	}
 
+	[ContextMenu("Generate Geometry")]
+	void Generate()
+	{
+		CreateMesh();
+	}
+
 	private int VertexCount
 	{
 		get { return (3 + lengthSegments) * (radialSegments + 1) + 2; }
@@ -60,7 +66,7 @@ public class Lathe : MonoBehaviour
 		var angleStep = (2 * Mathf.PI) / radialSegments;
 		var lengthStep = length / lengthSegments;
 		var ringCount = radialSegments + 1;
-		var maxIndex = vertices.Length - 2 * (ringCount + 1); // Remove the caps.
+		var maxIndex = vertices.Length - 2 * (ringCount + 1); // Excludes the caps.
 		var topCenter = vertices.Length - 1;
 		var bottomCenter = topCenter - 1;
 		for (int i = 0; i <= radialSegments; ++i)
@@ -90,7 +96,6 @@ public class Lathe : MonoBehaviour
 					triIndex += TRI_VERTS;
 				}
 			}
-			Debug.DrawRay(transform.localPosition + new Vector3(0, y, z), new Vector3(0, sin, cos), new Color(sin, 0, cos), 100);
 			for (int j = 0; j <= lengthSegments; ++j)
 			{
 				vertices[index] = new Vector3(lengthStep * j, y, z);
@@ -132,7 +137,6 @@ public class Lathe : MonoBehaviour
 		}
 
 		mMesh.RecalculateBounds();
-		mMesh.RecalculateNormals();
 	}
 
 	void CreateMesh()
