@@ -23,7 +23,7 @@ public class Lathe : MonoBehaviour
 
 	private int VertexCount
 	{
-		get { return (3 + lengthSegments) * radialSegments + 2; }
+		get { return (3 + lengthSegments) * (radialSegments + 1) + 2; }
 	}
 
 	private int TriangleCount
@@ -58,10 +58,11 @@ public class Lathe : MonoBehaviour
 		var vStep = 1.0f / (lengthSegments + 2);
 		var angleStep = (2 * Mathf.PI) / radialSegments;
 		var lengthStep = length / lengthSegments;
-		var maxIndex = vertices.Length - 2 * (radialSegments + 1); // Remove the caps.
+		var ringCount = radialSegments + 1;
+		var maxIndex = vertices.Length - 2 * (ringCount + 1); // Remove the caps.
 		var topCenter = vertices.Length - 1;
 		var bottomCenter = topCenter - 1;
-		for (int i = 0; i < radialSegments; ++i)
+		for (int i = 0; i <= radialSegments; ++i)
 		{
 			var angle = angleStep * i;
 			var cos = Mathf.Cos(angle);
@@ -69,21 +70,24 @@ public class Lathe : MonoBehaviour
 			var z = radius * cos;
 			var y = radius * sin;
 			vertices[maxIndex + i] = new Vector3(0, y, z);
-			vertices[maxIndex + radialSegments + i] = new Vector3(length, y, z);
+			vertices[maxIndex + ringCount + i] = new Vector3(length, y, z);
 			if (initialize)
 			{
 				uv[maxIndex + i] = new Vector2(i * uStep, vStep);
-				uv[maxIndex + radialSegments + i] = new Vector2(i * uStep, 1 - vStep);
+				uv[maxIndex + ringCount + i] = new Vector2(i * uStep, 1 - vStep);
 				normals[maxIndex + i] = new Vector3(-1, 0, 0);
-				normals[maxIndex + radialSegments + i] = new Vector3(1, 0, 0);
-				tri[triIndex + 0] = bottomCenter;
-				tri[triIndex + 1] = maxIndex + i;
-				tri[triIndex + 2] = maxIndex + (i + 1) % radialSegments;
-				triIndex += TRI_VERTS;
-				tri[triIndex + 0] = topCenter;
-				tri[triIndex + 1] = maxIndex + radialSegments + (i + 1) % radialSegments;
-				tri[triIndex + 2] = maxIndex + radialSegments + i;
-				triIndex += TRI_VERTS;
+				normals[maxIndex + ringCount + i] = new Vector3(1, 0, 0);
+				if (i < radialSegments)
+				{
+					tri[triIndex + 0] = bottomCenter;
+					tri[triIndex + 1] = maxIndex + i;
+					tri[triIndex + 2] = maxIndex + (i + 1) % ringCount;
+					triIndex += TRI_VERTS;
+					tri[triIndex + 0] = topCenter;
+					tri[triIndex + 1] = maxIndex + ringCount + (i + 1) % ringCount;
+					tri[triIndex + 2] = maxIndex + ringCount + i;
+					triIndex += TRI_VERTS;
+				}
 			}
 			for (int j = 0; j <= lengthSegments; ++j)
 			{
@@ -92,7 +96,7 @@ public class Lathe : MonoBehaviour
 				{
 					normals[index] = new Vector3(0, cos, sin);
 					uv[index] = new Vector2(i * uStep, (j + 1) * vStep);
-					if (j < lengthSegments)
+					if (i < radialSegments && j < lengthSegments)
 					{
 						tri[triIndex + 0] = index;
 						tri[triIndex + 1] = (index + 1) % maxIndex;
