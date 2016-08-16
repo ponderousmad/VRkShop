@@ -8,6 +8,7 @@ public class Lathe : MonoBehaviour
 	public int radialSegments = 32;
 	public float length = 1.0f;
 	public float radius = 0.1f;
+	public float spinRate = 100.0f;
 
 	private Mesh mMesh = null;
 	private bool mShapeChanged = false;
@@ -31,7 +32,6 @@ public class Lathe : MonoBehaviour
 		get { return ((lengthSegments + 2) * radialSegments * 2); }
 	}
 
-	// Use this for initialization
 	void Start()
 	{
 		CreateMesh();
@@ -43,6 +43,7 @@ public class Lathe : MonoBehaviour
 		{
 			ShapeMesh(false);
 		}
+		transform.Rotate(Vector3.right, spinRate * Time.deltaTime, Space.Self);
 	}
 
 	void ShapeMesh(bool initialize)
@@ -131,7 +132,6 @@ public class Lathe : MonoBehaviour
 
 		mMesh.RecalculateBounds();
 		mMesh.RecalculateNormals();
-		Debug.Log("Mesh shaped.");
 	}
 
 	void CreateMesh()
@@ -143,8 +143,6 @@ public class Lathe : MonoBehaviour
 		mMesh.normals = new Vector3[VertexCount];
 		mMesh.uv = new Vector2[VertexCount];
 		mMesh.triangles = new int[TriangleCount * TRI_VERTS];
-
-		Debug.Log("Mesh created.");
 
 		ShapeMesh(true);
 	}
