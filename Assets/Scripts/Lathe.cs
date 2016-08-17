@@ -12,6 +12,7 @@ public class Lathe : MonoBehaviour
 	public float spinRate = 100.0f;
 
 	public Transform tool = null;
+	public float toolWidth = 0.01f;
 
 	private Mesh mMesh = null;
 	private bool mShapeChanged = false;
@@ -43,6 +44,16 @@ public class Lathe : MonoBehaviour
 		get { return ((lengthSegments + 2) * radialSegments * 2); }
 	}
 
+	private float AngleStep
+	{
+		get { return (2 * Mathf.PI) / radialSegments; }
+	}
+
+	private float LengthStep
+	{
+		get { return length / lengthSegments; }
+	}
+
 	void Start()
 	{
 		for (var i = 0; i < radialSegments; ++i)
@@ -60,9 +71,37 @@ public class Lathe : MonoBehaviour
 
 	void Update()
 	{
+		if (tool)
+		{
+			var tip = transform.InverseTransformPoint(tool.TransformPoint(Vector3.zero));
+			var onAxis = new Vector3(tip.x, 0, 0);
+			var spoke = tip - onAxis;
+			var direction = spoke.normalized;
+			var angle = Mathf.Atan2(direction.z, direction.y);
+			if (angle < 0)
+			{
+				angle += 2 * Mathf.PI;
+			}
+			var i = Mathf.RoundToInt(angle / AngleStep) % radialSegments;
+			var offset = Mathf.RoundToInt(tip.x / LengthStep);
+			var steps = Mathf.CeilToInt(toolWidth / LengthStep);
+			for (var j = offset - steps; j <= offset + steps; ++j)
+			{
+				if (0 <= j && j <= lengthSegments)
+				{
+					var distance = Mathf.Max(1e-6f, spoke.magnitude);
+					if (mShell[i][j] > distance)
+					{
+						mShell[i][j] = distance;
+						mShapeChanged = true;
+					}
+				}
+			}
+		}
 		if (mShapeChanged)
 		{
 			ShapeMesh(false);
+			mShapeChanged = false;
 		}
 		transform.Rotate(Vector3.right, spinRate * Time.deltaTime, Space.Self);
 	}
@@ -78,8 +117,8 @@ public class Lathe : MonoBehaviour
 		var triIndex = 0;
 		var uStep = 1.0f / radialSegments;
 		var vStep = 1.0f / (lengthSegments + 2);
-		var angleStep = (2 * Mathf.PI) / radialSegments;
-		var lengthStep = length / lengthSegments;
+		var angleStep = AngleStep;
+		var lengthStep = LengthStep;
 		var ringCount = radialSegments + 1;
 		var maxIndex = vertices.Length - 2 * (ringCount + 1); // Excludes the caps.
 		var topCenter = vertices.Length - 1;
