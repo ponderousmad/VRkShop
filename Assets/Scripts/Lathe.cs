@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Leap.Unity;
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class Lathe : MonoBehaviour
@@ -13,6 +14,8 @@ public class Lathe : MonoBehaviour
 
 	public Transform tool = null;
 	public float toolWidth = 0.01f;
+
+	public LeapHandController leap = null;
 
 	private Mesh mMesh = null;
 	private bool mShapeChanged = false;
@@ -73,6 +76,23 @@ public class Lathe : MonoBehaviour
 	{
 		if (tool)
 		{
+			if(leap)
+			{
+				var provider = leap.GetComponent<LeapProvider>();
+				if (provider)
+				{
+					var hands = provider.CurrentFrame.Hands;
+					foreach (var hand in hands)
+					{
+						if (hand.IsRight)
+						{
+							var indexFinger = hand.Fingers[1];
+							tool.localPosition = tool.parent.InverseTransformPoint(indexFinger.TipPosition.ToVector3());
+						}
+					}
+				}
+			}
+
 			var tip = transform.InverseTransformPoint(tool.TransformPoint(Vector3.zero));
 			var onAxis = new Vector3(tip.x, 0, 0);
 			var spoke = tip - onAxis;
@@ -82,18 +102,23 @@ public class Lathe : MonoBehaviour
 			{
 				angle += 2 * Mathf.PI;
 			}
-			var i = Mathf.RoundToInt(angle / AngleStep) % radialSegments;
+			var angleIndex = Mathf.RoundToInt(angle / AngleStep) % radialSegments;
 			var offset = Mathf.RoundToInt(tip.x / LengthStep);
 			var steps = Mathf.CeilToInt(toolWidth / LengthStep);
+			var angleSweep = Mathf.CeilToInt(radialSegments * 0.05f);
 			for (var j = offset - steps; j <= offset + steps; ++j)
 			{
 				if (0 <= j && j <= lengthSegments)
 				{
-					var distance = Mathf.Max(1e-6f, spoke.magnitude);
-					if (mShell[i][j] > distance)
+					for (var index = angleIndex - angleSweep; index <= angleIndex + angleSweep; ++index)
 					{
-						mShell[i][j] = distance;
-						mShapeChanged = true;
+						var i = (index + radialSegments) % radialSegments;
+						var distance = Mathf.Max(1e-6f, spoke.magnitude);
+						if (mShell[i][j] > distance)
+						{
+							mShell[i][j] = distance;
+							mShapeChanged = true;
+						}
 					}
 				}
 			}
