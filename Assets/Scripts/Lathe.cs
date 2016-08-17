@@ -11,6 +11,8 @@ public class Lathe : MonoBehaviour
 	public float radius = 0.1f;
 	public float spinRate = 100.0f;
 
+	public Transform tool = null;
+
 	private Mesh mMesh = null;
 	private bool mShapeChanged = false;
 	private const int TRI_VERTS = 3;
@@ -43,7 +45,7 @@ public class Lathe : MonoBehaviour
 
 	void Start()
 	{
-		for(var i = 0; i < radialSegments; ++i)
+		for (var i = 0; i < radialSegments; ++i)
 		{
 			var spoke = new float[lengthSegments + 1];
 			mShell.Add(spoke);
@@ -89,7 +91,7 @@ public class Lathe : MonoBehaviour
 			var sin = Mathf.Sin(angle);
 			var radiusBottom = mShell[i % radialSegments][0];
 			var radiusTop = mShell[i % radialSegments][lengthSegments];
-            vertices[maxIndex + i] = new Vector3(0, sin * radiusBottom, cos * radiusBottom);
+			vertices[maxIndex + i] = new Vector3(0, sin * radiusBottom, cos * radiusBottom);
 			vertices[maxIndex + ringCount + i] = new Vector3(length, sin * radiusTop, cos * radiusTop);
 			if (initialize)
 			{
