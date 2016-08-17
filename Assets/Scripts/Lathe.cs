@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class Lathe : MonoBehaviour
@@ -13,6 +14,8 @@ public class Lathe : MonoBehaviour
 	private Mesh mMesh = null;
 	private bool mShapeChanged = false;
 	private const int TRI_VERTS = 3;
+
+	private List<float[]> mShell = new List<float[]>();
 
 	[ContextMenu("Clear Geometry")]
 	void ClearGeometry()
@@ -40,6 +43,16 @@ public class Lathe : MonoBehaviour
 
 	void Start()
 	{
+		for(var i = 0; i < radialSegments; ++i)
+		{
+			var spoke = new float[lengthSegments + 1];
+			mShell.Add(spoke);
+			for (var j = 0; j <= lengthSegments; ++j)
+			{
+				spoke[j] = radius;
+			}
+		}
+
 		CreateMesh();
 	}
 
@@ -74,10 +87,10 @@ public class Lathe : MonoBehaviour
 			var angle = i < radialSegments ? angleStep * i : 0.0f;
 			var cos = Mathf.Cos(angle);
 			var sin = Mathf.Sin(angle);
-			var z = radius * cos;
-			var y = radius * sin;
-			vertices[maxIndex + i] = new Vector3(0, y, z);
-			vertices[maxIndex + ringCount + i] = new Vector3(length, y, z);
+			var radiusBottom = mShell[i % radialSegments][0];
+			var radiusTop = mShell[i % radialSegments][lengthSegments];
+            vertices[maxIndex + i] = new Vector3(0, sin * radiusBottom, cos * radiusBottom);
+			vertices[maxIndex + ringCount + i] = new Vector3(length, sin * radiusTop, cos * radiusTop);
 			if (initialize)
 			{
 				uv[maxIndex + i] = new Vector2(i * uStep, vStep);
@@ -98,7 +111,8 @@ public class Lathe : MonoBehaviour
 			}
 			for (int j = 0; j <= lengthSegments; ++j)
 			{
-				vertices[index] = new Vector3(lengthStep * j, y, z);
+				var segmentRadius = mShell[i % radialSegments][j];
+				vertices[index] = new Vector3(lengthStep * j, sin * segmentRadius, cos * segmentRadius);
 				if (initialize)
 				{
 					normals[index] = new Vector3(0, sin, cos);
