@@ -121,6 +121,14 @@ public class Lathe : MonoBehaviour
 			}
 		}
 
+		var spinRate = maxSpinRate;
+		if (speedControl)
+		{
+			var angle = speedControl.localRotation.eulerAngles.x * Mathf.Deg2Rad;
+			spinRate = maxSpinRate * (angle / MAX_SPEED_ANGLE);
+		}
+		var spinStep = spinRate * Time.deltaTime;
+
 		if (tool)
 		{
 			var tip = transform.InverseTransformPoint(tool.TransformPoint(Vector3.zero));
@@ -135,7 +143,7 @@ public class Lathe : MonoBehaviour
 			var angleIndex = Mathf.RoundToInt(angle / AngleStep) % radialSegments;
 			var offset = Mathf.RoundToInt(tip.x / LengthStep);
 			var steps = Mathf.CeilToInt(toolWidth / LengthStep);
-			var angleSweep = Mathf.CeilToInt(radialSegments * 0.05f);
+			var angleSweep = Mathf.CeilToInt(spinStep * Mathf.Deg2Rad / AngleStep);
 			for (var j = offset - steps; j <= offset + steps; ++j)
 			{
 				if (0 <= j && j <= lengthSegments)
@@ -158,15 +166,7 @@ public class Lathe : MonoBehaviour
 			ShapeMesh(false);
 			mShapeChanged = false;
 		}
-
-		var spinRate = maxSpinRate;
-		if (speedControl)
-		{
-			var angle = speedControl.localRotation.eulerAngles.x * Mathf.Deg2Rad;
-            Debug.Log(angle);
-			spinRate = maxSpinRate * (angle / MAX_SPEED_ANGLE);
-		}
-		transform.Rotate(Vector3.right, spinRate * Time.deltaTime, Space.Self);
+		transform.Rotate(Vector3.right, spinStep, Space.Self);
 	}
 
 	void ShapeMesh(bool initialize)
