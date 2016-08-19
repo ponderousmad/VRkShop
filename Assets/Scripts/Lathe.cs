@@ -10,16 +10,20 @@ public class Lathe : MonoBehaviour
 	public int radialSegments = 32;
 	public float length = 1.0f;
 	public float radius = 0.1f;
-	public float spinRate = 100.0f;
+	public float maxSpinRate = 500.0f;
 
 	public Transform tool = null;
 	public float toolWidth = 0.01f;
+
+	public Transform speedControl = null;
 
 	public LeapHandController leap = null;
 
 	private Mesh mMesh = null;
 	private bool mShapeChanged = false;
 	private const int TRI_VERTS = 3;
+
+	private const float MAX_SPEED_ANGLE = Mathf.PI / 2;
 
 	private List<float[]> mShell = new List<float[]>();
 
@@ -72,31 +76,53 @@ public class Lathe : MonoBehaviour
 				spoke[j] = r;
 			}
 		}
+		if (speedControl)
+		{
+			speedControl.localRotation = Quaternion.Euler(MAX_SPEED_ANGLE * Mathf.Rad2Deg / 2, 0, 0);
+		}
 
 		CreateMesh();
 	}
 
 	void Update()
 	{
-		if (tool)
+		if (leap)
 		{
-			if (leap)
+			var provider = leap.GetComponent<LeapProvider>();
+			if (provider)
 			{
-				var provider = leap.GetComponent<LeapProvider>();
-				if (provider)
+				var hands = provider.CurrentFrame.Hands;
+				foreach (var hand in hands)
 				{
-					var hands = provider.CurrentFrame.Hands;
-					foreach (var hand in hands)
+					if (hand.IsRight)
 					{
-						if (hand.IsRight)
+
+						if (tool)
 						{
 							var indexFinger = hand.Fingers[1];
 							tool.localPosition = tool.parent.InverseTransformPoint(indexFinger.TipPosition.ToVector3());
 						}
 					}
+					else if (hand.IsLeft)
+					{
+						if (speedControl)
+						{
+							var indexFinger = hand.Fingers[1];
+							var speedPos = transform.parent.InverseTransformPoint(indexFinger.TipPosition.ToVector3());
+							if (speedPos.x < 0)
+							{
+								var angle = Mathf.Clamp(Mathf.Atan2(speedPos.z, speedPos.y), -MAX_SPEED_ANGLE, 0);
+								angle += Mathf.PI / 2;
+								speedControl.localRotation = Quaternion.Euler(angle * Mathf.Rad2Deg, 0, 0);
+							}
+						}
+					}
 				}
 			}
+		}
 
+		if (tool)
+		{
 			var tip = transform.InverseTransformPoint(tool.TransformPoint(Vector3.zero));
 			var onAxis = new Vector3(tip.x, 0, 0);
 			var spoke = tip - onAxis;
@@ -131,6 +157,14 @@ public class Lathe : MonoBehaviour
 		{
 			ShapeMesh(false);
 			mShapeChanged = false;
+		}
+
+		var spinRate = maxSpinRate;
+		if (speedControl)
+		{
+			var angle = speedControl.localRotation.eulerAngles.x * Mathf.Deg2Rad;
+            Debug.Log(angle);
+			spinRate = maxSpinRate * (angle / MAX_SPEED_ANGLE);
 		}
 		transform.Rotate(Vector3.right, spinRate * Time.deltaTime, Space.Self);
 	}

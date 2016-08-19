@@ -207,22 +207,6 @@ Prefab:
       value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 11474050, guid: 5c31b0596edc256428320cdae76ebe5a, type: 2}
-      propertyPath: spinRate
-      value: 500
-      objectReference: {fileID: 0}
-    - target: {fileID: 11474050, guid: 5c31b0596edc256428320cdae76ebe5a, type: 2}
-      propertyPath: lengthSegments
-      value: 400
-      objectReference: {fileID: 0}
-    - target: {fileID: 11474050, guid: 5c31b0596edc256428320cdae76ebe5a, type: 2}
-      propertyPath: radialSegments
-      value: 128
-      objectReference: {fileID: 0}
-    - target: {fileID: 2372650, guid: 5c31b0596edc256428320cdae76ebe5a, type: 2}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: c3db1c6723d5e7b468771a6d85ed73f9, type: 2}
-    - target: {fileID: 11474050, guid: 5c31b0596edc256428320cdae76ebe5a, type: 2}
       propertyPath: leap
       value: 
       objectReference: {fileID: 100596506}
