@@ -61,11 +61,15 @@ public class Lathe : MonoBehaviour
 	{
 		for (var i = 0; i < radialSegments; ++i)
 		{
+			var angle = i * AngleStep;
+			var sideB = Mathf.Tan(angle); // Calculate a square cross section.
+			sideB = Mathf.Abs(sideB) <= 1 ? sideB : 1 / sideB;
+			var r = radius * Mathf.Sqrt(1 + sideB * sideB);
 			var spoke = new float[lengthSegments + 1];
 			mShell.Add(spoke);
 			for (var j = 0; j <= lengthSegments; ++j)
 			{
-				spoke[j] = radius;
+				spoke[j] = r;
 			}
 		}
 
@@ -76,7 +80,7 @@ public class Lathe : MonoBehaviour
 	{
 		if (tool)
 		{
-			if(leap)
+			if (leap)
 			{
 				var provider = leap.GetComponent<LeapProvider>();
 				if (provider)
@@ -217,6 +221,7 @@ public class Lathe : MonoBehaviour
 		}
 
 		mMesh.RecalculateBounds();
+		mMesh.RecalculateNormals();
 	}
 
 	void CreateMesh()
