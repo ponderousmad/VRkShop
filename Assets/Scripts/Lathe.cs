@@ -127,7 +127,7 @@ public class Lathe : MonoBehaviour
 			var onAxis = new Vector3(tip.x, 0, 0);
 			var spoke = tip - onAxis;
 			var direction = spoke.normalized;
-			var angle = Mathf.Atan2(direction.z, direction.y);
+			var angle = -Mathf.Atan2(direction.z, direction.y) + (Mathf.PI / 2);
 			if (angle < 0)
 			{
 				angle += 2 * Mathf.PI;
