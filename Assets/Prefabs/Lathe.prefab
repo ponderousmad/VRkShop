@@ -441,7 +441,7 @@ MonoBehaviour:
   maxSpinRate: 1000
   tool: {fileID: 456422}
   toolWidth: 0.01
-  speedControl: {fileID: 417130}
+  speedControlHandle: {fileID: 442482}
   leap: {fileID: 0}
 --- !u!135 &13595658
 SphereCollider:

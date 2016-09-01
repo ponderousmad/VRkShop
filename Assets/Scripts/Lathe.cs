@@ -15,7 +15,8 @@ public class Lathe : MonoBehaviour
 	public Transform tool = null;
 	public float toolWidth = 0.01f;
 
-	public Transform speedControl = null;
+	public Transform speedControlHandle = null;
+	private Transform SpeedControl { get { return speedControlHandle.parent; } }
 
 	public LeapHandController leap = null;
 
@@ -76,9 +77,9 @@ public class Lathe : MonoBehaviour
 				spoke[j] = r;
 			}
 		}
-		if (speedControl)
+		if (speedControlHandle)
 		{
-			speedControl.localRotation = Quaternion.Euler(MAX_SPEED_ANGLE * Mathf.Rad2Deg / 2, 0, 0);
+			SpeedControl.localRotation = Quaternion.Euler(MAX_SPEED_ANGLE * Mathf.Rad2Deg / 2, 0, 0);
 		}
 
 		CreateMesh();
@@ -101,19 +102,21 @@ public class Lathe : MonoBehaviour
 						{
 							var indexFinger = hand.Fingers[1];
 							tool.localPosition = tool.parent.InverseTransformPoint(indexFinger.TipPosition.ToVector3());
+							Debug.Log(tool.position);
 						}
 					}
 					else if (hand.IsLeft)
 					{
-						if (speedControl)
+						if (speedControlHandle)
 						{
-							var indexFinger = hand.Fingers[1];
-							var speedPos = transform.parent.InverseTransformPoint(indexFinger.TipPosition.ToVector3());
-							if (speedPos.x < 0)
+							var speedPos = hand.PalmPosition.ToVector3() - SpeedControl.position;
+							var distance = Vector3.Distance(speedPos, speedControlHandle.position - SpeedControl.position);
+							if (distance < 0.1f && hand.GrabStrength > 0.6f)
 							{
+								Debug.Log("Distance: " + distance);
 								var angle = Mathf.Clamp(Mathf.Atan2(speedPos.z, speedPos.y), -MAX_SPEED_ANGLE, 0);
 								angle += Mathf.PI / 2;
-								speedControl.localRotation = Quaternion.Euler(angle * Mathf.Rad2Deg, 0, 0);
+								SpeedControl.localRotation = Quaternion.Euler(angle * Mathf.Rad2Deg, 0, 0);
 							}
 						}
 					}
@@ -122,9 +125,9 @@ public class Lathe : MonoBehaviour
 		}
 
 		var spinRate = maxSpinRate;
-		if (speedControl)
+		if (speedControlHandle)
 		{
-			var angle = speedControl.localRotation.eulerAngles.x * Mathf.Deg2Rad;
+			var angle = SpeedControl.localRotation.eulerAngles.x * Mathf.Deg2Rad;
 			spinRate = maxSpinRate * (angle / MAX_SPEED_ANGLE);
 		}
 		var spinStep = spinRate * Time.deltaTime;
