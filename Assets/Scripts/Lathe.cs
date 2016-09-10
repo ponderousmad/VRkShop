@@ -102,7 +102,6 @@ public class Lathe : MonoBehaviour
 						{
 							var indexFinger = hand.Fingers[1];
 							tool.localPosition = tool.parent.InverseTransformPoint(indexFinger.TipPosition.ToVector3());
-							Debug.Log(tool.position);
 						}
 					}
 					else if (hand.IsLeft)
@@ -113,7 +112,6 @@ public class Lathe : MonoBehaviour
 							var distance = Vector3.Distance(speedPos, speedControlHandle.position - SpeedControl.position);
 							if (distance < 0.1f && hand.GrabStrength > 0.6f)
 							{
-								Debug.Log("Distance: " + distance);
 								var angle = Mathf.Clamp(Mathf.Atan2(speedPos.z, speedPos.y), -MAX_SPEED_ANGLE, 0);
 								angle += Mathf.PI / 2;
 								SpeedControl.localRotation = Quaternion.Euler(angle * Mathf.Rad2Deg, 0, 0);
