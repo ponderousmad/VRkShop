@@ -19,6 +19,9 @@ public class Lathe : MonoBehaviour
 	private Transform SpeedControl { get { return speedControlHandle.parent; } }
 
 	public LeapHandController leap = null;
+	public SteamVR_TrackedController leftController = null;
+	public SteamVR_TrackedController rightController = null;
+	public Vector3 toolWandOffset = Vector3.zero;
 
 	private Mesh mMesh = null;
 	private bool mShapeChanged = false;
@@ -106,19 +109,28 @@ public class Lathe : MonoBehaviour
 					}
 					else if (hand.IsLeft)
 					{
-						if (speedControlHandle)
+						if (speedControlHandle && hand.GrabStrength > 0.6f)
 						{
 							var speedPos = hand.PalmPosition.ToVector3() - SpeedControl.position;
-							var distance = Vector3.Distance(speedPos, speedControlHandle.position - SpeedControl.position);
-							if (distance < 0.1f && hand.GrabStrength > 0.6f)
-							{
-								var angle = Mathf.Clamp(Mathf.Atan2(speedPos.z, speedPos.y), -MAX_SPEED_ANGLE, 0);
-								angle += Mathf.PI / 2;
-								SpeedControl.localRotation = Quaternion.Euler(angle * Mathf.Rad2Deg, 0, 0);
-							}
+							ControlSpeed(speedPos);
 						}
 					}
 				}
+			}
+		} else { // OpenVR
+			if (rightController && rightController.triggerPressed)
+			{
+				Vector4 offset = toolWandOffset;
+				offset.w = 1;
+				var offsetPosition = rightController.transform.localToWorldMatrix * offset;
+				tool.localPosition = tool.parent.InverseTransformPoint(offsetPosition);
+				tool.localRotation = rightController.transform.rotation;
+			}
+			if (leftController && leftController.triggerPressed && speedControlHandle)
+			{
+				var speedPos = leftController.transform.position - SpeedControl.position;
+				Debug.Log(speedPos);
+				ControlSpeed(speedPos);
 			}
 		}
 
@@ -168,6 +180,18 @@ public class Lathe : MonoBehaviour
 			mShapeChanged = false;
 		}
 		transform.Rotate(Vector3.right, spinStep, Space.Self);
+	}
+
+	private void ControlSpeed(Vector3 speedPos)
+	{
+		var distance = Vector3.Distance(speedPos, speedControlHandle.position - SpeedControl.position);
+		Debug.Log(distance);
+		if (distance < 0.2f)
+		{
+			var angle = Mathf.Clamp(Mathf.Atan2(speedPos.z, speedPos.y), -MAX_SPEED_ANGLE, 0);
+			angle += Mathf.PI / 2;
+			SpeedControl.localRotation = Quaternion.Euler(angle * Mathf.Rad2Deg, 0, 0);
+		}
 	}
 
 	void ShapeMesh(bool initialize)
